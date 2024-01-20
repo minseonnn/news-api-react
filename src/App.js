@@ -29,7 +29,7 @@ function App() {
           }
         });
         console.log(response); 
-        setArticles(response.data.articles);
+        setArticles((prevArticles) => [...prevArticles, ...response.data.articles]);
       } catch (error) {
         console.error(error);
       }
@@ -37,7 +37,34 @@ function App() {
     if(keyword !== "") {
       fetchData();
     }
+
+    
+
   }, [keyword, currentPage, today, oneMonthAgo]);
+  
+
+  const callback = (entries, observer) => {
+    entries.forEach( (entry) => {
+      if(entry.isIntersecting) {
+        setCurrentPage(currentPage + 1);
+        console.log(`is intersecting? ${entry.intersectionRatio}`);
+        observer.disconnect();
+        console.log(`끝`)
+      }
+    });
+  };
+
+  useEffect(() => {
+    const observerEntry = document.getElementById(`article-${articles.length - 2}`);
+
+    if(observerEntry) {
+      const observerInstance = new IntersectionObserver(callback, { threshold: 0.2 });
+      observerInstance.observe(observerEntry);
+    }
+  },[articles]);
+
+
+  
   const OnSubmit = (event) => {
     event.preventDefault();
     
@@ -60,7 +87,9 @@ function App() {
         <input type="text" onChange={HandelKeyword}/>
         <button>search</button>
       </form>
-      <NewsList key={articles.index} Articles = {articles}/>
+      <div>
+        <NewsList key={articles.index} Articles = {articles} currentPage = {currentPage} />
+      </div>
     </div>
   );
 }
